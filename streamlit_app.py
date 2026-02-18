@@ -16,7 +16,7 @@ This tool connects to your ESPN League and generates a multi-tab Excel file cont
 3. **Master List** (All players in the league)
 """)
 
---- SIDEBAR: AUTHENTICATION (FLEXIBLE VERSION) ---
+# --- SIDEBAR: AUTHENTICATION (FLEXIBLE VERSION) ---
 with st.sidebar:
     st.header("Authentication")
     
