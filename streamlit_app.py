@@ -16,35 +16,39 @@ This tool connects to your ESPN League and generates a multi-tab Excel file cont
 3. **Master List** (All players in the league)
 """)
 
-# --- SIDEBAR: AUTHENTICATION (SECURE VERSION) ---
+--- SIDEBAR: AUTHENTICATION (FLEXIBLE VERSION) ---
 with st.sidebar:
-    st.header("Settings")
+    st.header("Authentication")
     
-    # 1. Get secrets silently
-    sec_id = st.secrets.get("LEAGUE_ID")
-    sec_swid = st.secrets.get("SWID")
-    sec_s2 = st.secrets.get("ESPN_S2")
+    # 1. Check if secrets actually exist in the dashboard
+    has_secrets = "SWID" in st.secrets and "ESPN_S2" in st.secrets
+    
+    # 2. The Toggle
+    use_defaults = st.checkbox("Use System Credentials", value=has_secrets, 
+                               help="Uncheck to enter a different League ID or private credentials.")
 
-    # 2. Setup variables
-    # If the secret exists, use it. If not, show an input box.
-    if sec_id:
-        league_id = int(sec_id)
-        st.success("✅ League ID loaded from system.")
-    else:
+    if use_defaults:
+        if has_secrets:
+            # Silently pull from secrets
+            league_id = int(st.secrets.get("LEAGUE_ID", 11440))
+            swid = st.secrets.get("SWID")
+            espn_s2 = st.secrets.get("ESPN_S2")
+            st.success("🔒 Using hidden system keys.")
+        else:
+            st.error("No secrets found in dashboard! Please enter credentials manually.")
+            use_defaults = False # Fallback if you forgot to set secrets
+
+    # 3. Manual Inputs (Only show if toggle is OFF)
+    if not use_defaults:
         league_id = st.number_input("League ID", value=11440)
+        swid = st.text_input("SWID", type="password", help="Enter your ESPN SWID")
+        espn_s2 = st.text_input("ESPN_S2", type="password", help="Enter your ESPN_S2 cookie")
 
+    # 4. Shared Settings
     year = st.number_input("Year", value=2026)
-
-    # Use the secrets for SWID and S2 if they exist, 
-    # otherwise provide a blank password field for the user.
-    swid = sec_swid if sec_swid else st.text_input("SWID", type="password")
-    espn_s2 = sec_s2 if sec_s2 else st.text_input("ESPN_S2", type="password")
-
-    if sec_swid and sec_s2:
-        st.info("🔒 Credentials are encrypted and hidden.")
     
     st.divider()
-    st.markdown("Click the button below to generate the report using the hidden system credentials.")
+    st.info("The Excel file will be generated based on the credentials selected above.")
 # --- HELPER FUNCTIONS ---
 def auto_adjust_column_width(writer, df, sheet_name):
     """Adjusts Excel column widths to fit content."""
