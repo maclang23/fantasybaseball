@@ -16,26 +16,35 @@ This tool connects to your ESPN League and generates a multi-tab Excel file cont
 3. **Master List** (All players in the league)
 """)
 
-# --- SIDEBAR: AUTHENTICATION ---
+# --- SIDEBAR: AUTHENTICATION (SECURE VERSION) ---
 with st.sidebar:
-    st.header("Settings & Auth")
+    st.header("Settings")
     
-    # These pull from your "Secrets" dashboard if available, otherwise they are empty
-    # This keeps your SWID/S2 hidden from the public view
-    default_id = st.secrets.get("LEAGUE_ID", 11440)
-    default_swid = st.secrets.get("SWID", "")
-    default_s2 = st.secrets.get("ESPN_S2", "")
+    # 1. Get secrets silently
+    sec_id = st.secrets.get("LEAGUE_ID")
+    sec_swid = st.secrets.get("SWID")
+    sec_s2 = st.secrets.get("ESPN_S2")
 
-    league_id = st.number_input("League ID", value=int(default_id))
+    # 2. Setup variables
+    # If the secret exists, use it. If not, show an input box.
+    if sec_id:
+        league_id = int(sec_id)
+        st.success("✅ League ID loaded from system.")
+    else:
+        league_id = st.number_input("League ID", value=11440)
+
     year = st.number_input("Year", value=2026)
+
+    # Use the secrets for SWID and S2 if they exist, 
+    # otherwise provide a blank password field for the user.
+    swid = sec_swid if sec_swid else st.text_input("SWID", type="password")
+    espn_s2 = sec_s2 if sec_s2 else st.text_input("ESPN_S2", type="password")
+
+    if sec_swid and sec_s2:
+        st.info("🔒 Credentials are encrypted and hidden.")
     
-    # 'type="password"' masks the input with dots so people standing behind you can't see it
-    swid = st.text_input("SWID", value=default_swid, type="password", help="Found in ESPN cookies")
-    espn_s2 = st.text_input("ESPN_S2", value=default_s2, type="password", help="Found in ESPN cookies")
-
     st.divider()
-    st.info("💡 If you've set up Streamlit Secrets, the fields above are pre-filled but hidden.")
-
+    st.markdown("Click the button below to generate the report using the hidden system credentials.")
 # --- HELPER FUNCTIONS ---
 def auto_adjust_column_width(writer, df, sheet_name):
     """Adjusts Excel column widths to fit content."""
